@@ -1,3 +1,4 @@
+import os
 import MySQLdb
 
 '''
@@ -22,11 +23,11 @@ mysql_config = {
     "database": "account"
 }
 # 数据将要去到的文件目录
-folder = 'D:/python/sql'
+folder = 'D:/python/sql/target'
 # 文件名前缀
 file_prefix = "rpp_approve_"
 # 查询的数据的id号
-id = "1"
+id = "2"
 # 待查询的数据集
 sql_map = {
     "测试1": "select * from tb_student where stu_id = :id",
@@ -46,6 +47,7 @@ if __name__ == '__main__':
                            password=mysql_config['password'],
                            database=mysql_config['database'],
                            charset='utf8')
+    os.makedirs(folder, exist_ok=True)
     name = folder + "/" + file_prefix + id + ".md"
     file = open(name, 'w', encoding="utf-8")
     file.write("# *" + id + "* 的数据")
