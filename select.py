@@ -21,7 +21,7 @@ import MySQLdb
 
 def select(conn: MySQLdb.Connection, sql: str, table: str, file: TextIOWrapper):
     # Prepare a cursor object using cursor() method
-    cursor = conn.cursor()
+    cursor: MySQLdb.cursors.Cursor = conn.cursor()
 
     # Execute SQL query
     cursor.execute(sql)
@@ -49,6 +49,8 @@ def select(conn: MySQLdb.Connection, sql: str, table: str, file: TextIOWrapper):
         file.write("\r|")
         for column in row:
             if column is None:
+                file.write("-")
+            elif column == '':
                 file.write("-")
             else:
                 file.write(escape(str(column)))
