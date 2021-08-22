@@ -12,7 +12,7 @@ import MySQLdb
 被听成了一首诗的城市。
 '''
 
-from select import select
+import select
 
 # 数据库
 mysql_config = {
@@ -35,7 +35,9 @@ sql_map = {
     "测试3": "select * from tb_student where stu_id = :id",
     "测试4": "select 1 as name from dual",
     "测试5": '''
-        select 2 as 姓名 from dual
+        select 2 as 姓名 from dual;
+        select 5 as 姓名 from dual;
+        select 2 as 测试, 3 as 哈哈 from dual;
     ''',
 }
 
@@ -54,7 +56,9 @@ if __name__ == '__main__':
     file.write("\r")
     for key in sql_map:
         print("查询\t" + key + ": (id = " + id + ")")
-        select(conn, sql_map[key].replace(":id", "'" + id + "'"), key, file)
+        # select(conn, sql_map[key].replace(":id", "'" + id + "'"), key, file)
+        (length, desc, data) = select.query(conn, sql_map[key].replace(":id", "'" + id + "'"))
+        select.write(length, desc, data, key, file)
     file.flush()
     file.close()
     conn.close()

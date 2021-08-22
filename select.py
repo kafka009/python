@@ -19,45 +19,88 @@ import MySQLdb
 '''
 
 
-def select(conn: MySQLdb.Connection, sql: str, table: str, file: TextIOWrapper):
-    # Prepare a cursor object using cursor() method
-    cursor: MySQLdb.cursors.Cursor = conn.cursor()
+def query(conn: MySQLdb.Connection, sqls: str):
+    length = 0
+    desc = []
+    data = []
 
-    # Execute SQL query
-    cursor.execute(sql)
+    for sql in sqls.split(";"):
+        sql = sql.strip("\r\n ")
+        if len(sql) == 0:
+            continue
 
+        # Prepare a cursor object using cursor() method
+        cursor: MySQLdb.cursors.Cursor = conn.cursor()
+
+        # Execute SQL query
+        cursor.execute(sql)
+
+        # Max length
+        length = max(length, len(cursor.description))
+
+        # Meta data
+        desc.append(cursor.description)
+
+        # Row data
+        data.append(cursor.fetchall())
+    return length, desc, data
+
+
+def write(length, desc, data, table: str, file: TextIOWrapper):
+    # Write table name
     file.write("## ")
     file.write(table)
-    file.write("\r")
+    file.write(" \r ")
 
-    # Fetch meta
-    file.write('|')
-    for column_des in cursor.description:
-        file.write(column_des[0])
-        file.write("|")
+    for index in range(len(desc)):
+        meta = desc[index]
+        rows = data[index]
 
-    # Make a new line
-    file.write("\r")
+        # Write meta data
+        file.write(' | ')
+        for column_des in meta:
+            file.write("<center><b>")
+            file.write(column_des[0])
+            file.write("</center></b>")
+            file.write(" | ")
+        for i in range(length - len(meta)):
+            file.write("<center><b> - </b></center>")
+            file.write(" | ")
+        file.write(" \r ")
 
-    # Split
-    file.write('|')
-    for column_des in cursor.description:
-        file.write(" ----- |")
+        # Smart head
+        if index == 0:
+            file.write(" | ")
+            for i in range(length):
+                file.write(" ----- |")
+            file.write(" \r ")
 
-    # Fetch data
-    for row in cursor.fetchall():
-        file.write("\r|")
-        for column in row:
-            if column is None:
-                file.write("-")
-            elif column == '':
-                file.write("-")
-            else:
-                file.write(escape(str(column)))
-            file.write("|")
+        # Write rows data
+        file.write(" | ")
+        for row in rows:
+            for column in row:
+                if column is None:
+                    file.write("<center> NA </center>")
+                elif column == '':
+                    file.write("<center> NA </center>")
+                else:
+                    file.write(escape(str(column)))
+                file.write(" | ")
+            for i in range(length - len(meta)):
+                file.write("<center> NA </center>")
+                file.write(" | ")
+            # New line
+            file.write(" \r ")
 
-    # A new line
-    file.write("\r")
+        # Empty data
+        if len(rows) == 0:
+            file.write(" | ")
+            for i in range(length):
+                file.write("<center> NA </center>|")
+            file.write(" \r ")
+
+    # New line
+    file.write(" \r ")
 
 
 # 转义字符集
